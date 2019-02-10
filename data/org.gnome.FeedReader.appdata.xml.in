@@ -73,6 +73,17 @@
 	<developer_name>Jan Lukas Gernert</developer_name>
 	<project_group>GNOME</project_group>
 	<releases>
+		<release version="2.9.0" date="2019-02-10">
+			<description>
+				<ul>
+					<li>Support new GNOME guidelines for the primary menu</li>
+					<li>Sort articles by date by default</li>
+					<li>Make backend plugins share some code and make OPML import work for all backend plugins</li>
+					<li>Various improvements to how translations work</li>
+					<li>TT-RSS: Fix another crash when TT-RSS sends us data with an unexpected types</li>
+				</ul>
+			</description>
+		</release>
 		<release version="2.8.1" date="2019-02-09">
 			<description>
 				<ul>

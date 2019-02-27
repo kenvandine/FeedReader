@@ -1,0 +1,163 @@
+name: feedreader
+version: git
+summary: RSS client for various webservices
+description: |
+  FeedReader is a program designed to complement an already existing web-based RSS reader account.
+
+  Currently supported services:
+    Feedbin
+    Feedly
+    FreshRSS
+    InoReader
+    Local RSS
+    Nextcloud/ownCloud
+    The Old Reader
+    Tiny Tiny RSS
+
+  It combines all the advantages of web based services like syncing across all your devices with everything you expect
+  from a modern desktop program: Desktop notifications, fast search and filtering, tagging, sharing to "read-it-later"
+  services like Pocket and Instapaper, handy keyboard shortcuts and a database that keeps all your old articles as long as you
+  like.
+
+  FeedReader also allows you to save articles to read-it-later with the supported services for now:
+    Instapaper
+    Pocket
+    Wallabag
+
+  It also let you share any article with your friends using:
+    Email
+    Twitter
+    Telegram
+
+grade: stable # must be 'stable' to release into candidate/stable channels
+confinement: strict
+base: core18
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: i386
+    run-on: i386
+  - build-on: arm64
+    run-on: arm64
+  - build-on: armhf
+    run-on: armhf
+
+plugs:
+  gnome-3-28-1804:
+    interface: content
+    target: $SNAP/gnome-platform
+    default-provider: gnome-3-28-1804
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes
+
+layout:
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0:
+    symlink: $SNAP/gnome-platform/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpeas-1.0:
+    symlink: $SNAP/gnome-platform/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpeas-1.0
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/feedreader:
+    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/feedreader
+  /usr/share/feedreader:
+    symlink: $SNAP/usr/share/feedreader
+
+slots:
+  # for GtkApplication registration
+  feedreader:
+    interface: dbus
+    bus: session
+    name: org.gnome.FeedReader
+
+apps:
+  feedreader:
+    command: bin/desktop-launch ${SNAP}/bin/snapcraft-preload ${SNAP}/usr/bin/feedreader
+    desktop: usr/share/applications/org.gnome.FeedReader.desktop
+    plugs:
+      - browser-support
+      - desktop
+      - desktop-legacy
+      - home
+      - gsettings
+      - network
+      - network-manager
+      - wayland
+      - x11
+      - accounts-service
+      - password-manager-service
+      - opengl
+    environment:
+      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
+      DISABLE_WAYLAND: 1
+
+parts:
+  snapcraft-preload:
+    source: https://github.com/sergiusens/snapcraft-preload.git
+    plugin: cmake
+    build-packages:
+      - gcc-multilib
+      - g++-multilib
+  desktop-gnome-platform:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: gtk
+    plugin: make
+    make-parameters: ["FLAVOR=gtk3"]
+    build-packages:
+      - build-essential
+      - libgtk-3-dev
+    override-build: |
+      snapcraftctl build
+      mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
+
+  feedreader:
+    after: [desktop-gnome-platform]
+    source: .
+    source-type: git
+    override-pull: |
+      snapcraftctl pull
+      sed -i.bak -e 's|Icon=org.gnome.FeedReader$|Icon=${SNAP}/meta/gui/feedreader.svg|g' data/org.gnome.FeedReader.desktop.in
+      mkdir -p $SNAPCRAFT_PART_INSTALL/meta/gui/
+      cp data/application-icons/hicolor/128x128/apps/org.gnome.FeedReader.svg $SNAPCRAFT_PART_INSTALL/meta/gui/feedreader.svg
+
+    plugin: meson
+    meson-parameters:
+      - --prefix=/snap/feedreader/current/usr
+      - --buildtype=release
+      - -Dbackend-plugins=local
+      - -Dshare-plugins=
+
+    organize:
+      snap/feedreader/current/usr: usr
+    build-packages:
+      - build-essential
+      - valac
+      - pkg-config
+      - libgirepository1.0-dev
+      - libgtk-3-dev
+      - libgumbo-dev
+      - libsoup2.4-dev
+      - libjson-glib-dev
+      - libwebkit2gtk-4.0-dev
+      - libsqlite3-dev
+      - libsecret-1-dev
+      - libnotify-dev
+      - libxml2-dev
+      - librest-dev
+      - libgee-0.8-dev
+      - libgstreamer1.0-dev
+      - libgstreamer-plugins-base1.0-dev
+      - libgoa-1.0-dev
+      - libcurl-dev
+      - libpeas-dev
+    stage-packages:
+      - libgoa-1.0-0b
+      - libgumbo1
+      - libcurl4

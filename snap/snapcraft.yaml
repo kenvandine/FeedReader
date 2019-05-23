@@ -79,7 +79,7 @@ slots:
 
 apps:
   feedreader:
-    command: bin/desktop-launch ${SNAP}/bin/snapcraft-preload ${SNAP}/usr/bin/feedreader
+    command: bin/desktop-launch ${SNAP}/usr/bin/feedreader
     desktop: usr/share/applications/org.gnome.FeedReader.desktop
     plugs:
       - browser-support
@@ -99,12 +99,6 @@ apps:
       DISABLE_WAYLAND: 1
 
 parts:
-  snapcraft-preload:
-    source: https://github.com/sergiusens/snapcraft-preload.git
-    plugin: cmake
-    build-packages:
-      - gcc-multilib
-      - g++-multilib
   desktop-gnome-platform:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
     source-subdir: gtk
@@ -133,8 +127,6 @@ parts:
     meson-parameters:
       - --prefix=/snap/feedreader/current/usr
       - --buildtype=release
-      - -Dbackend-plugins=local
-      - -Dshare-plugins=
 
     organize:
       snap/feedreader/current/usr: usr
@@ -164,3 +156,4 @@ parts:
       - libgoa-1.0-0b
       - libgumbo1
       - libcurl4
+      - binutils # lineno if it crashes
